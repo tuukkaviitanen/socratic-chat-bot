@@ -10,7 +10,7 @@ import uvicorn
 start = time.time()
 
 # Load the pretrained model
-llm = AutoModelForCausalLM.from_pretrained('./llama-2-7b-chat.ggmlv3.q4_K_S.bin', model_type='llama')
+llm = AutoModelForCausalLM.from_pretrained('./model', model_type='llama')
 
 load_time = time.time()
 
@@ -34,11 +34,13 @@ app.add_middleware(
 @app.post("/")
 async def root(request: Request):
     prompt = await request.body()
-    prompt = prompt.decode('utf-8')
+    decoded_prompt = prompt.decode('utf-8')
+
+    complete_prompt = f"[INST] <<SYS>> You are Socrates. Keep your answers short.<</SYS>>{decoded_prompt}[/INST]"
 
     def generate():
         # with llm_lock:  # Acquire the lock before calling the llm function
-        for word in llm(prompt, stream=True):
+        for word in llm(complete_prompt, stream=True):
             # encoded_word = urllib.parse.quote(word)
             yield word
 

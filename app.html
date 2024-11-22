@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat Bot</title>
+    <title>Socratic Chat Bot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,18 +35,28 @@
     </style>
 </head>
 <body>
-    <h1>Simple Chat Bot</h1>
+    <h1>Socratic Chat Bot</h1>
     <div id="chat-box"></div>
     <form id="input-form">
         <input type="text" id="user-input" placeholder="Type your message here..." required>
-        <button type="submit">Send</button>
+        <button id="user-submit" type="submit">Send</button>
     </form>
 
     <script>
+        const synth = window.speechSynthesis;
+        const inputField = document.getElementById('user-input')
+        const submitButton = document.getElementById('user-submit')
+        const chatBox = document.getElementById('chat-box');
+
+        const messagePrefix = "Bot: ";
+
         document.getElementById('input-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            const userInput = document.getElementById('user-input').value;
-            const chatBox = document.getElementById('chat-box');
+
+            inputField.disabled = true;
+            submitButton.disabled = true;
+
+            const userInput = inputField.value;
 
             // Display user input in chat box
             const userMessage = document.createElement('div');
@@ -66,7 +76,7 @@
 
                 const botMessage = document.createElement('div');
                 botMessage.className = 'message';
-                botMessage.textContent = 'Bot: ';
+                botMessage.textContent = messagePrefix;
 
                 chatBox.appendChild(botMessage);
                 chatBox.scrollTop = chatBox.scrollHeight;
@@ -75,7 +85,18 @@
                 const processChunk = async () => {
                     const { done, value } = await reader.read();
                     if (done) {
-                    return;
+                        inputField.disabled = false;
+                        submitButton.disabled = false;
+
+                        inputField.focus();
+
+                        const utterance = new SpeechSynthesisUtterance(botMessage.textContent.replace(messagePrefix, ''));
+
+                        utterance.voice = synth.getVoices().find(voice => /nestoras/i.test(voice.name));
+
+                        synth.speak(utterance);
+
+                        return;
                     }
 
                     const chunk = decoder.decode(value, { stream: true });
@@ -91,7 +112,7 @@
             });
 
             // Clear input field
-            document.getElementById('user-input').value = '';
+            inputField.value = '';
         });
     </script>
 </body>
