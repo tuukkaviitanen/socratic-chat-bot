@@ -1,3 +1,5 @@
+# MIT License
+
 MIT License
 
 Copyright (c) 2024 Tuukka Viitanen
@@ -19,3 +21,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+# Llama 2 Community License
+
+Llama 2 is licensed under the LLAMA 2 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.
+
+For more details, see the full Llama 2 Community License Agreement at [Meta AI](https://ai.meta.com/llama/license/).
+
+---
