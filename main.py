@@ -36,7 +36,7 @@ async def root(request: Request):
     prompt = await request.body()
     decoded_prompt = prompt.decode('utf-8')
 
-    complete_prompt = f"[INST] <<SYS>> You are Socrates. Keep your answers short.<</SYS>>{decoded_prompt}[/INST]"
+    complete_prompt = f"[INST]<<SYS>>You are Socrates.<</SYS>>{decoded_prompt}[/INST]"
 
     def generate():
         # with llm_lock:  # Acquire the lock before calling the llm function

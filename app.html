@@ -50,6 +50,15 @@
 
         const messagePrefix = "Bot: ";
 
+        let currentSentence = '';
+        const utteranceQueue = [];
+
+        const speakCurrentSentence = () => {
+            const utterance = new SpeechSynthesisUtterance(currentSentence);
+            currentSentence = '';
+            synth.speak(utterance);
+        };
+
         document.getElementById('input-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -85,22 +94,27 @@
                 const processChunk = async () => {
                     const { done, value } = await reader.read();
                     if (done) {
+                        speakCurrentSentence();
+
                         inputField.disabled = false;
                         submitButton.disabled = false;
 
                         inputField.focus();
-
-                        const utterance = new SpeechSynthesisUtterance(botMessage.textContent.replace(messagePrefix, ''));
-
-                        utterance.voice = synth.getVoices().find(voice => /nestoras/i.test(voice.name));
-
-                        synth.speak(utterance);
 
                         return;
                     }
 
                     const chunk = decoder.decode(value, { stream: true });
                     botMessage.textContent += chunk;
+
+                    currentSentence += chunk;
+
+                    const endOfSentence = /[.!?]/.test(chunk);
+                    const endOfEmote = /\*.+\*/.test(currentSentence);
+
+                    if(endOfSentence || endOfEmote) {
+                        speakCurrentSentence();
+                    }
 
                     processChunk();
                 };
