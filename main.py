@@ -28,7 +28,6 @@ llm_lock = threading.Lock()
 
 @app.route("/", methods=["GET"])
 def serve_app():
-    logger.info("Serving static file")
     return current_app.send_static_file("client.html")
 
 @app.route("/prompt", methods=["POST"])
@@ -46,4 +45,4 @@ def prompt():
     return Response(generate(), content_type="text/plain")
 
 if __name__ == "__main__":
-    serve(app, host="0.0.0.0", port=80)
+    serve(app, host="0.0.0.0", port=8080)
