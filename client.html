@@ -74,7 +74,7 @@
             chatBox.appendChild(userMessage);
 
             // Send POST request
-            fetch('http://localhost:5000', {
+            fetch('/prompt', {
                 method: 'POST',
                 body: userInput
             })

@@ -1,6 +1,6 @@
 from ctransformers import AutoModelForCausalLM
 import time
-from flask import Flask, request, Response
+from flask import Flask, request, Response, current_app
 from flask_cors import CORS
 from waitress import serve
 import threading
@@ -26,8 +26,13 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Create a lock object so only one request can use the model at a time
 llm_lock = threading.Lock()
 
-@app.route("/", methods=["POST"])
-def root():
+@app.route("/", methods=["GET"])
+def serve_app():
+    logger.info("Serving static file")
+    return current_app.send_static_file("client.html")
+
+@app.route("/prompt", methods=["POST"])
+def prompt():
     prompt = request.data
     decoded_prompt = prompt.decode('utf-8')
 
