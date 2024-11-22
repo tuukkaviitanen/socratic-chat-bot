@@ -15,7 +15,7 @@ print(f"\n\nTime taken to load model: {load_time-start} seconds\n\n")
 
 app = Flask('app')
 
-# Create a lock object
+# Create a lock object so only one request can use the model at a time
 llm_lock = threading.Lock()
 
 @app.route('/', methods=['POST'])
