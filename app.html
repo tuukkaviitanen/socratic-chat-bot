@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        #input-form {
+            display: flex;
+        }
+        #input-form input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #input-form button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .message{
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Chat Bot</h1>
+    <div id="chat-box"></div>
+    <form id="input-form">
+        <input type="text" id="user-input" placeholder="Type your message here..." required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        document.getElementById('input-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const userInput = document.getElementById('user-input').value;
+            const chatBox = document.getElementById('chat-box');
+
+            // Display user input in chat box
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message';
+            userMessage.textContent = 'You: ' + userInput;
+            chatBox.appendChild(userMessage);
+
+            // Send POST request
+            fetch('http://localhost:5000', {
+                method: 'POST',
+                body: userInput
+            })
+            .then(response => {
+                // Display response in chat box
+                const reader = response.body.getReader()
+                const decoder = new TextDecoder();
+
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message';
+                botMessage.textContent = 'Bot: ';
+
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+
+                const processChunk = async () => {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                    return;
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    botMessage.textContent += chunk;
+
+                    processChunk();
+                };
+
+                processChunk();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+            // Clear input field
+            document.getElementById('user-input').value = '';
+        });
+    </script>
+</body>
+</html>
