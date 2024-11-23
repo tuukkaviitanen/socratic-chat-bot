@@ -1,146 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Socratic Chat Bot</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        #chat-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 300px;
-            overflow-y: scroll;
-            margin-bottom: 10px;
-        }
-        #input-form {
-            display: flex;
-        }
-        #input-form input {
-            flex: 1;
-            padding: 10px;
-            font-size: 16px;
-        }
-        #input-form button {
-            padding: 10px;
-            font-size: 16px;
-        }
-        .message{
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #f1f1f1;
-            text-align: center;
-            padding: 10px 0;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      #chat-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 300px;
+        overflow-y: scroll;
+        margin-bottom: 10px;
+      }
+      #input-form {
+        display: flex;
+      }
+      #input-form input {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+      }
+      #input-form button {
+        padding: 10px;
+        font-size: 16px;
+      }
+      .message {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: #f1f1f1;
+        text-align: center;
+        padding: 10px 0;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Socratic Chat Bot</h1>
     <div id="chat-box"></div>
     <form id="input-form">
-        <input type="text" id="user-input" placeholder="Type your message here..." required>
-        <button id="user-submit" type="submit">Send</button>
+      <input
+        type="text"
+        id="user-input"
+        placeholder="Type your message here..."
+        required
+      />
+      <button id="user-submit" type="submit">Send</button>
     </form>
     <footer>
-        <p>
-            <a href="https://github.com/tuukkaviitanen/socratic-chat-bot" target="_blank">GitHub Repository</a> |
-            <a href="https://github.com/tuukkaviitanen/socratic-chat-bot/blob/main/LICENSE.md" target="_blank">License</a>
-        </p>
+      <p>
+        <a
+          href="https://github.com/tuukkaviitanen/socratic-chat-bot"
+          target="_blank"
+          >GitHub Repository</a
+        >
+        |
+        <a
+          href="https://github.com/tuukkaviitanen/socratic-chat-bot/blob/main/LICENSE.md"
+          target="_blank"
+          >License</a
+        >
+      </p>
     </footer>
     <script>
-        const synth = window.speechSynthesis;
-        const inputField = document.getElementById('user-input')
-        const submitButton = document.getElementById('user-submit')
-        const chatBox = document.getElementById('chat-box');
+      const synth = window.speechSynthesis;
+      const inputField = document.getElementById("user-input");
+      const submitButton = document.getElementById("user-submit");
+      const chatBox = document.getElementById("chat-box");
 
-        const messagePrefix = "Bot: ";
+      const messagePrefix = "Bot: ";
 
-        let currentSentence = '';
-        const utteranceQueue = [];
+      let currentSentence = "";
+      const utteranceQueue = [];
 
-        const speakCurrentSentence = () => {
-            const utterance = new SpeechSynthesisUtterance(currentSentence);
-            currentSentence = '';
-            synth.speak(utterance);
-        };
+      const speakCurrentSentence = () => {
+        const utterance = new SpeechSynthesisUtterance(currentSentence);
+        currentSentence = "";
+        synth.speak(utterance);
+      };
 
-        document.getElementById('input-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+      document
+        .getElementById("input-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
 
-            inputField.disabled = true;
-            submitButton.disabled = true;
+          inputField.disabled = true;
+          submitButton.disabled = true;
 
-            const userInput = inputField.value;
+          const userInput = inputField.value;
 
-            // Display user input in chat box
-            const userMessage = document.createElement('div');
-            userMessage.className = 'message';
-            userMessage.textContent = 'You: ' + userInput;
-            chatBox.appendChild(userMessage);
+          // Display user input in chat box
+          const userMessage = document.createElement("div");
+          userMessage.className = "message";
+          userMessage.textContent = "You: " + userInput;
+          chatBox.appendChild(userMessage);
 
-            // Send POST request
-            fetch('/prompt', {
-                method: 'POST',
-                body: userInput
-            })
-            .then(response => {
-                // Display response in chat box
-                const reader = response.body.getReader()
-                const decoder = new TextDecoder();
+          // Send POST request
+          fetch("/prompt", {
+            method: "POST",
+            body: userInput,
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
 
-                const botMessage = document.createElement('div');
-                botMessage.className = 'message';
-                botMessage.textContent = messagePrefix;
+              // Display response in chat box
+              const reader = response.body.getReader();
+              const decoder = new TextDecoder();
 
-                chatBox.appendChild(botMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
+              const botMessage = document.createElement("div");
+              botMessage.className = "message";
+              botMessage.textContent = messagePrefix;
 
+              chatBox.appendChild(botMessage);
+              chatBox.scrollTop = chatBox.scrollHeight;
 
-                const processChunk = async () => {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        speakCurrentSentence();
+              const processChunk = async () => {
+                const { done, value } = await reader.read();
+                if (done) {
+                  speakCurrentSentence();
 
-                        inputField.disabled = false;
-                        submitButton.disabled = false;
+                  inputField.disabled = false;
+                  submitButton.disabled = false;
 
-                        inputField.focus();
+                  inputField.focus();
 
-                        return;
-                    }
+                  return;
+                }
 
-                    const chunk = decoder.decode(value, { stream: true });
-                    botMessage.textContent += chunk;
+                const chunk = decoder.decode(value, { stream: true });
+                botMessage.textContent += chunk;
 
-                    currentSentence += chunk;
+                currentSentence += chunk;
 
-                    const endOfSentence = /[.!?]/.test(chunk);
-                    const endOfEmote = /\*.+\*/.test(currentSentence);
+                const endOfSentence = /[.!?]/.test(chunk);
+                const endOfEmote = /\*.+\*/.test(currentSentence);
 
-                    if(endOfSentence || endOfEmote) {
-                        speakCurrentSentence();
-                    }
-
-                    processChunk();
-                };
+                if (endOfSentence || endOfEmote) {
+                  speakCurrentSentence();
+                }
 
                 processChunk();
+              };
+
+              processChunk();
             })
-            .catch(error => {
-                console.error('Error:', error);
+            .catch((error) => {
+              console.error("Error:", error);
+
+              const botMessage = document.createElement("div");
+              botMessage.className = "message";
+              botMessage.textContent = messagePrefix + "Sorry, I couldn't process your request. Please try again.";
+
+              chatBox.appendChild(botMessage);
+              chatBox.scrollTop = chatBox.scrollHeight;
             });
 
-            // Clear input field
-            inputField.value = '';
+          // Clear input field
+          inputField.value = "";
         });
     </script>
-</body>
+  </body>
 </html>
