@@ -2,7 +2,19 @@
 
 > Standalone chat bot that thinks it's Socrates
 
-![Screenshot of a Socratic chat](image.png)
+![Screenshot of a Socratic chat](screenshot.png)
+
+## Try it out locally with [Docker](https://www.docker.com/)!
+
+1. Make sure you have Docker installed on your system. No other dependencies needed!
+2. Run the following command in your terminal
+
+   ```
+   docker run --rm -p 8080:8080 ghcr.io/tuukkaviitanen/socratic-chat-bot:latest
+   ```
+
+3. Open http://localhost:8080 in your browser
+4. Have fun!
 
 ## Model
 
