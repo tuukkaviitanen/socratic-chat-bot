@@ -33,10 +33,9 @@ def serve_app():
 
 @app.route("/prompt", methods=["POST"])
 def prompt():
-    prompt = request.data
-    decoded_prompt = prompt.decode('utf-8')
+    prompt = request.get_data(as_text=True)
 
-    complete_prompt = f"[INST]<<SYS>>You are Socrates. Answer with maximum of two sentences.<</SYS>>{decoded_prompt}[/INST]"
+    complete_prompt = f"[INST]<<SYS>>You are Socrates. Answer with maximum of two sentences.<</SYS>>{prompt}[/INST]"
 
     def generate():
         with llm_lock:  # Acquire the lock before calling the llm function
