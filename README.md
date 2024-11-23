@@ -14,7 +14,7 @@ Specifically it's using the model file [llama-2-7b-chat.ggmlv3.q2_K.bin](https:/
 
 The model is loaded by a [Python](https://www.python.org/) application which also starts a HTTP API with [Flask](https://flask.palletsprojects.com/en/stable/) to handle communication between clients and the model.
 
-The environment is created with a Dockerfile that first downloads the pretrained model. [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) and [ctransformers](https://github.com/marella/ctransformers) are then used to load the model.
+The environment is created with a Dockerfile that first downloads the pretrained model. [ctransformers](https://github.com/marella/ctransformers) is then used to load the model.
 
 Each prompt request to the API is wrapped in a [prompt template](https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGML#prompt-template-llama-2-chat) and fed to the model. This means that the model has no knowledge of prior prompts. It would be possible to also include the chat history ([see examples here](https://gpus.llm-utils.org/llama-2-prompt-template/)), but it affects the speed of the responses greatly, so the history is sacrificed in this project.
 

@@ -102,6 +102,8 @@
           userMessage.textContent = "You: " + userInput;
           chatBox.appendChild(userMessage);
 
+          chatBox.scrollTop = chatBox.scrollHeight;
+
           // Send POST request
           fetch("/prompt", {
             method: "POST",
