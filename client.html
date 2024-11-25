@@ -93,9 +93,16 @@
 
       let currentSentence = "";
       const utteranceQueue = [];
-      const utteranceVoice =
-        synth.getVoices().find((voice) => /Nestoras/i.test(voice.name)) ?? // Uses the Microsoft Greek male voice if available
-        synth.getVoices().find((voice) => voice.lang == "el-GR"); // Otherwise uses any Greek voice (or the default voice if no Greek voice is available)
+
+      const getGreekVoice = () =>
+        synth.getVoices().find((voice) => /Nestoras/i.test(voice.name)) ??
+        synth.getVoices().find((voice) => voice.lang == "el-GR");
+
+      let utteranceVoice = getGreekVoice();
+
+      synth.onvoiceschanged = () => {
+        utteranceVoice = getGreekVoice();
+      };
 
       const speakCurrentSentence = () => {
         const utterance = new SpeechSynthesisUtterance(currentSentence);
