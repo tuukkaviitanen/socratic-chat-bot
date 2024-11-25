@@ -39,7 +39,7 @@ def prompt():
 
     def generate():
         with llm_lock:  # Acquire the lock before calling the llm function
-            for word in llm(complete_prompt, stream=True, max_new_tokens=1000): # Generate up to 1000 tokens which should be more than enough
+            for word in llm(complete_prompt, stream=True, max_new_tokens=500): # Generate up to 1000 tokens which should be more than enough
                 yield word
 
     return Response(generate(), content_type="text/plain")
