@@ -97,7 +97,9 @@
       const speakCurrentSentence = () => {
         const utterance = new SpeechSynthesisUtterance(currentSentence);
         currentSentence = "";
-        utterance.voice = synth.getVoices().find((voice) => /Nestoras/i.test(voice.name)); // Uses the Greek male voice if available
+        utterance.voice =
+          synth.getVoices().find((voice) => /Nestoras/i.test(voice.name)) ?? // Uses the Microsoft Greek male voice if available
+          synth.getVoices().find((voice) => voice.lang == "el-GR"); // Otherwise uses any Greek voice (or the default voice if no Greek voice is available)
         synth.speak(utterance);
       };
 
