@@ -35,11 +35,11 @@ def serve_app():
 def prompt():
     prompt = request.get_data(as_text=True)
 
-    complete_prompt = f"[INST]<<SYS>>You are Socrates. Answer with maximum of two sentences.<</SYS>>{prompt}[/INST]"
+    complete_prompt = f"[INST]<<SYS>>You are Socrates. Keep your answers short.<</SYS>>{prompt}[/INST]"
 
     def generate():
         with llm_lock:  # Acquire the lock before calling the llm function
-            for word in llm(complete_prompt, stream=True, max_new_tokens=100):
+            for word in llm(complete_prompt, stream=True):
                 yield word
 
     return Response(generate(), content_type="text/plain")
