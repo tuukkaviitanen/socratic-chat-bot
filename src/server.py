@@ -29,7 +29,7 @@ llm_lock = threading.Lock()
 
 @app.route("/", methods=["GET"])
 def serve_app():
-    return current_app.send_static_file("client.html")
+    return current_app.send_static_file("index.html")
 
 @app.route("/prompt", methods=["POST"])
 def prompt():

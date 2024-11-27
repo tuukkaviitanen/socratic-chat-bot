@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socratic Chat Bot</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <!-- Not adding the defer tag on the script is a concious choice, as the link tag is non-blocking in Firefox,
+     and I don't want to see a non-styled page for a split-second.
+     These files are really small, so the added load time is minimal. -->
+    <script src="/static/script.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Socratic Chat Bot</h1>
+      <div id="chat-box"></div>
+      <form id="input-form">
+        <input
+          type="text"
+          id="input-field"
+          placeholder="Type your message here..."
+          required
+        />
+        <button id="submit-button" type="submit">Send</button>
+      </form>
+    </main>
+    <footer>
+      <p>
+        <a
+          href="https://github.com/tuukkaviitanen/socratic-chat-bot"
+          target="_blank"
+          >GitHub Repository</a
+        >
+        |
+        <a
+          href="https://github.com/tuukkaviitanen/socratic-chat-bot/blob/main/LICENSE.md"
+          target="_blank"
+          >License</a
+        >
+      </p>
+    </footer>
+  </body>
+</html>

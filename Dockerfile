@@ -19,6 +19,6 @@ COPY  --from=download-stage /usr/src/app/model ./model
 
 COPY ./src/server.py ./
 
-COPY ./src/client.html ./static/
+COPY ./src/client ./static
 
 CMD ["python", "server.py"]
