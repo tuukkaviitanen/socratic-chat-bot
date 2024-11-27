@@ -44,8 +44,13 @@ const spawnMessage = (initialMessage) => {
   return messageElement;
 };
 
-inputFormElement.addEventListener("submit", (event) => {
+inputFormElement.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  // iOS requires direct user interaction to activate speech synthesis.
+  // This empty speech call therefore allows future non-user-triggered speech,
+  // as the rest of the speech is basically triggered by the fetch response.
+  speakCurrentSentence();
 
   setInputDisabled(true);
 
@@ -56,57 +61,57 @@ inputFormElement.addEventListener("submit", (event) => {
   // Clear input field
   inputFieldElement.value = "";
 
-  fetch("/prompt", {
-    method: "POST",
-    body: userInput,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    const response = await fetch("/prompt", {
+      method: "POST",
+      body: userInput,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    const botMessageElement = spawnMessage(botMessagePrefix);
+
+    const processChunk = async () => {
+      const { done, value } = await reader.read();
+      if (done) {
+        speakCurrentSentence();
+
+        setInputDisabled(false);
+
+        inputFieldElement.focus();
+
+        return;
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const chunk = decoder.decode(value, { stream: true });
+      botMessageElement.textContent += chunk;
 
-      const botMessageElement = spawnMessage(botMessagePrefix);
+      currentSentence += chunk;
 
-      const processChunk = async () => {
-        const { done, value } = await reader.read();
-        if (done) {
-          speakCurrentSentence();
+      const endOfSentence = /[.!?]/.test(chunk);
+      const endOfEmote = /\*.+\*/.test(currentSentence);
 
-          setInputDisabled(false);
+      if (endOfSentence || endOfEmote) {
+        speakCurrentSentence();
+      }
 
-          inputFieldElement.focus();
+      await processChunk();
+    };
 
-          return;
-        }
+    await processChunk();
+  } catch (error) {
+    console.error("Error:", error);
 
-        const chunk = decoder.decode(value, { stream: true });
-        botMessageElement.textContent += chunk;
+    spawnMessage(
+      botMessagePrefix +
+        "Sorry, I couldn't process your request. Please try again."
+    );
 
-        currentSentence += chunk;
-
-        const endOfSentence = /[.!?]/.test(chunk);
-        const endOfEmote = /\*.+\*/.test(currentSentence);
-
-        if (endOfSentence || endOfEmote) {
-          speakCurrentSentence();
-        }
-
-        processChunk();
-      };
-
-      processChunk();
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-
-      spawnMessage(
-        botMessagePrefix +
-          "Sorry, I couldn't process your request. Please try again."
-      );
-
-      setInputDisabled(false);
-    });
+    setInputDisabled(false);
+  }
 });
