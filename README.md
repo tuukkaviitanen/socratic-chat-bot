@@ -4,9 +4,9 @@
 
 ![Screenshot of a Socratic chat](screenshot.png)
 
-## Try it out locally with [Docker](https://www.docker.com/)!
+## Try running it locally with [Docker](https://www.docker.com/)!
 
-1. Make sure you have Docker installed on your system. No other dependencies needed!
+1. Make sure you have [Docker](https://www.docker.com/) installed on your system. No other dependencies needed!
 2. Run the following command in your terminal
 
    ```
@@ -38,8 +38,10 @@ The response is returned from the model as a stream of words or syllables. Those
 
 The application also includes a vanilla HTML/CSS/JavaScript client application. It's nothing fancy and has only a chat area and an input field. When the input is submitted, it's sent to the server, and the response is then streamed on the chat area.
 
-When a complete sentence is received, the app starts running it through text-to-speech using the browser's [SpeechSynthesis API](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis). The API handles queueing automatically, so the sentences can just be added there when they are finished. It's using just the browser's default voice, as the voices differ from each browser. Also I feel that the robotic default voice is quite fitting.
+When a complete sentence is received, the app starts running it through text-to-speech using the browser's [SpeechSynthesis API](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis). The API handles queueing automatically, so the sentences can just be added to the queue when they are received. A Greek voice is used if available, for comical effect.
 
 ## Thoughts
 
-It was a nice small project for learning about language models. It was easier than I expected, since the pre-trained models work really well out of the box. The resource usage was quite interesting. It only takes about 300-400 MiB of memory to run, whether the model is processing or not. The CPU usage on the other hand is close to zero when idle, but it uses about 50 % of my CPU when processing.
+It was a nice small project for learning about language models. It was easier than I expected, since the pre-trained model worked really well out of the box. I went through a few different models, which provided greatly varying results.
+
+The resource usage was quite interesting. It usually takes about 300-400 MiB of memory to run, but the usage might rise to 1-2 GiB. The memory usage is quite stable, and is not greatly affected whether the model is processing or not, so the changes in the usage levels are not really clear to me. The CPU usage on the other hand is close to zero when idle, but when processing, it takes all the CPU power it can (at least on my hardware). On my [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/), I restrict the Docker image to using only 3/4 CPU cores to keep the temperature levels down, but it still runs at a respectable speed.

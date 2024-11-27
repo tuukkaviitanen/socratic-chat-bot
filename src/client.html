@@ -96,7 +96,10 @@
 
       const getGreekVoice = () =>
         synth.getVoices().find((voice) => /Nestoras/i.test(voice.name)) ??
-        synth.getVoices().find((voice) => voice.lang == "el-GR");
+        synth
+          .getVoices()
+          .find((voice) => /el-GR/i.test(voice.lang === "el-GR")) ??
+        synth.getVoices().find((voice) => voice.default);
 
       let utteranceVoice = getGreekVoice();
 
