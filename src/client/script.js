@@ -1,10 +1,11 @@
 const synth = window.speechSynthesis;
-const inputField = document.getElementById("input-field");
-const submitButton = document.getElementById("submit-button");
-const chatBox = document.getElementById("chat-box");
 
-const messagePrefix = "Bot: ";
+const inputFormElement = document.getElementById("input-form");
+const inputFieldElement = document.getElementById("input-field");
+const submitButtonElement = document.getElementById("submit-button");
+const chatBoxElement = document.getElementById("chat-box");
 
+const botMessagePrefix = "Bot: ";
 let currentSentence = "";
 const utteranceQueue = [];
 
@@ -26,91 +27,86 @@ const speakCurrentSentence = () => {
   synth.speak(utterance);
 };
 
-document
-  .getElementById("input-form")
-  .addEventListener("submit", function (event) {
-    event.preventDefault();
+const setInputDisabled = (disabled) => {
+  inputFieldElement.disabled = disabled;
+  submitButtonElement.disabled = disabled;
+};
 
-    inputField.disabled = true;
-    submitButton.disabled = true;
+const spawnMessage = (initialMessage) => {
+  const messageElement = document.createElement("div");
+  messageElement.className = "message";
+  messageElement.textContent = initialMessage;
 
-    const userInput = inputField.value;
+  chatBoxElement.appendChild(messageElement);
 
-    // Display user input in chat box
-    const userMessage = document.createElement("div");
-    userMessage.className = "message";
-    userMessage.textContent = "You: " + userInput;
-    chatBox.appendChild(userMessage);
+  chatBoxElement.scrollTop = chatBoxElement.scrollHeight;
 
-    chatBox.scrollTop = chatBox.scrollHeight;
+  return messageElement;
+};
 
-    // Send POST request
-    fetch("/prompt", {
-      method: "POST",
-      body: userInput,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+inputFormElement.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  setInputDisabled(true);
+
+  const userInput = inputFieldElement.value;
+
+  spawnMessage("You: " + userInput);
+
+  // Clear input field
+  inputFieldElement.value = "";
+
+  fetch("/prompt", {
+    method: "POST",
+    body: userInput,
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      const botMessageElement = spawnMessage(botMessagePrefix);
+
+      const processChunk = async () => {
+        const { done, value } = await reader.read();
+        if (done) {
+          speakCurrentSentence();
+
+          setInputDisabled(false);
+
+          inputFieldElement.focus();
+
+          return;
         }
 
-        // Display response in chat box
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
+        const chunk = decoder.decode(value, { stream: true });
+        botMessageElement.textContent += chunk;
 
-        const botMessage = document.createElement("div");
-        botMessage.className = "message";
-        botMessage.textContent = messagePrefix;
+        currentSentence += chunk;
 
-        chatBox.appendChild(botMessage);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        const endOfSentence = /[.!?]/.test(chunk);
+        const endOfEmote = /\*.+\*/.test(currentSentence);
 
-        const processChunk = async () => {
-          const { done, value } = await reader.read();
-          if (done) {
-            speakCurrentSentence();
-
-            inputField.disabled = false;
-            submitButton.disabled = false;
-
-            inputField.focus();
-
-            return;
-          }
-
-          const chunk = decoder.decode(value, { stream: true });
-          botMessage.textContent += chunk;
-
-          currentSentence += chunk;
-
-          const endOfSentence = /[.!?]/.test(chunk);
-          const endOfEmote = /\*.+\*/.test(currentSentence);
-
-          if (endOfSentence || endOfEmote) {
-            speakCurrentSentence();
-          }
-
-          processChunk();
-        };
+        if (endOfSentence || endOfEmote) {
+          speakCurrentSentence();
+        }
 
         processChunk();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+      };
 
-        const botMessage = document.createElement("div");
-        botMessage.className = "message";
-        botMessage.textContent =
-          messagePrefix +
-          "Sorry, I couldn't process your request. Please try again.";
+      processChunk();
+    })
+    .catch((error) => {
+      console.error("Error:", error);
 
-        chatBox.appendChild(botMessage);
-        chatBox.scrollTop = chatBox.scrollHeight;
+      spawnMessage(
+        botMessagePrefix +
+          "Sorry, I couldn't process your request. Please try again."
+      );
 
-        inputField.disabled = false;
-        submitButton.disabled = false;
-      });
-
-    // Clear input field
-    inputField.value = "";
-  });
+      setInputDisabled(false);
+    });
+});

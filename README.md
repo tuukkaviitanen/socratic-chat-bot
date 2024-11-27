@@ -40,6 +40,8 @@ The application also includes a vanilla HTML/CSS/JavaScript client application. 
 
 When a complete sentence is received, the app starts running it through text-to-speech using the browser's [SpeechSynthesis API](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis). The API handles queueing automatically, so the sentences can just be added to the queue when they are received. A Greek voice is used if available, for comical effect.
 
+The favicon <img src="src/client/socrates.png" alt="Socrates icon created by Bing Image Generator" width="40"/> is created using [Bing Image Generator](https://www.bing.com/images/create) which I can always happily recommend for these small project icons. It hasn't failed me yet.
+
 ## Thoughts
 
 It was a nice small project for learning about language models. It was easier than I expected, since the pre-trained model worked really well out of the box. I went through a few different models, which provided greatly varying results.
