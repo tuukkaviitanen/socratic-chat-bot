@@ -50,5 +50,12 @@ body {
     background-color: #f1f1f1;
     text-align: center;
     padding: 10px 0;
+
+    #version-tag {
+      color: gray;
+      position: fixed;
+      bottom: 5px;
+      right: 5px;
+    }
   }
 }

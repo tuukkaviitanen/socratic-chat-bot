@@ -19,6 +19,9 @@ COPY  --from=download-stage /usr/src/app/model ./model
 
 COPY ./src/server.py ./
 
-COPY ./src/client ./static
+COPY ./src/client/ ./
+
+ARG VERSION
+ENV VERSION=${VERSION}
 
 CMD ["python", "server.py"]

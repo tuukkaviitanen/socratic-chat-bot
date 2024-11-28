@@ -70,3 +70,5 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ needs.tag_release.outputs.version }}
