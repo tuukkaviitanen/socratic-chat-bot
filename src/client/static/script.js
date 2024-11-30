@@ -47,9 +47,11 @@ const spawnMessage = (initialMessage) => {
 inputFormElement.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  // iOS requires direct user interaction to activate speech synthesis.
-  // This empty speech call therefore allows future non-user-triggered speech,
-  // as the rest of the speech is basically triggered by the fetch response.
+  /*
+  iOS requires direct user interaction to activate speech synthesis.
+  This empty speech call therefore allows future non-user-triggered speech,
+  as the rest of the speech is actually triggered by the fetch response processing.
+  */
   speakCurrentSentence();
 
   setInputDisabled(true);
