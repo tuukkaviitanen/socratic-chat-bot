@@ -9,9 +9,27 @@ on:
       - main
 
 jobs:
+  verification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Compile application
+        run: cargo build --locked
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run linter
+        run: cargo clippy
+
   tag_release:
+    needs: ["verification"]
     if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     outputs:
@@ -27,7 +45,7 @@ jobs:
 
   publish_docker_image:
     needs: [tag_release]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -65,6 +83,7 @@ jobs:
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
+          file: Dockerfile.prod
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.tag_release.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest

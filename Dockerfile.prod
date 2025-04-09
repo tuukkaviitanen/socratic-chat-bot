@@ -1,0 +1,31 @@
+FROM scratch AS download-stage
+
+WORKDIR /usr/src/app
+
+ADD https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGML/resolve/main/llama-2-7b-chat.ggmlv3.q2_K.bin?download=true model.bin
+
+FROM rust:1.86-alpine AS build-stage
+
+WORKDIR /usr/src/app
+
+RUN apk add --no-cache build-base
+
+COPY Cargo.toml Cargo.lock ./
+COPY ./src/ ./
+
+RUN cargo build --locked --release
+
+FROM scratch AS final-stage
+
+WORKDIR /usr/src/app
+
+COPY --from=build-stage /usr/src/app/target/release/socratic-chat-bot ./socratic-chat-bot
+COPY --from=download-stage /usr/src/app/model.bin ./model.bin
+
+COPY ./static ./static
+COPY ./templates ./templates
+
+ARG VERSION
+ENV VERSION=${VERSION}
+
+CMD ["/socratic-chat-bot"]

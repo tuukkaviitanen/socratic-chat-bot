@@ -1,0 +1,38 @@
+FROM scratch AS download-stage
+
+ADD https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/main/llama-2-7b-chat.Q2_K.gguf?download=true model.bin
+
+# Using Alpine as that's used for the production image
+FROM rust:1.86 AS builder
+
+WORKDIR /app
+
+# Install build dependencies for Alpine and curl and bash for binstall
+RUN apt update && apt install --no-install-recommends -y \
+    libssl-dev \
+    pkg-config \
+    clang
+
+# Install binstall for faster cargo installs
+ADD https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh install-binstall.sh
+
+RUN chmod +x install-binstall.sh && \
+    ./install-binstall.sh && \
+    rm install-binstall.sh
+
+# Install bacon for live reload
+RUN cargo binstall bacon
+
+# Include just the Cargo.toml and Cargo.lock files first to cache dependencies
+COPY Cargo.toml Cargo.lock ./
+
+# Build the dependencies first to cache them
+# Template src/main.rs has to exist for build to run
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo build --locked
+
+COPY --from=download-stage /model.bin ./model.bin
+
+# Run app with live reload
+# See all default bacon jobs at https://raw.githubusercontent.com/Canop/bacon/main/defaults/default-bacon.toml
+CMD ["bacon", "--headless", "--watch", "./src/", "run-long"]

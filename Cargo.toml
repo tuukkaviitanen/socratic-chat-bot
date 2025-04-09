@@ -1,0 +1,14 @@
+[package]
+name = "socratic-chat-bot"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+tokio = "1.44.2"
+axum = "0.8.3"
+tower-http = { version = "0.6.2", features = ["fs", "cors"] }
+log = "0.4.27"
+env_logger = "0.11.8"
+llama_cpp = "0.3.2"
+futures = "0.3.31"
+axum-streams = { version = "0.20.0", features = ["text"] }
