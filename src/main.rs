@@ -1,39 +1,44 @@
 use std::env;
+use std::path::PathBuf;
 
-use axum::{Router, body::Bytes, extract::State, routing::post};
-use axum_streams::StreamBodyAs;
+use axum::{Router, body::Body, extract::State, routing::post};
+use kalosm::language::*;
+use tokio::time::Instant;
 use tower_http::{
     cors::{Any, CorsLayer},
     services::{ServeDir, ServeFile},
 };
 
 use axum::response::IntoResponse;
-use futures::stream;
-use llama_cpp::standard_sampler::StandardSampler;
-use llama_cpp::{LlamaModel, LlamaParams, SessionParams};
-
 #[derive(Clone)]
 struct AppState {
-    model: LlamaModel,
+    model: Llama,
 }
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
-    log::info!("Starting llama-cpp-rs server");
-
     let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
 
-    // Create a model from anything that implements `AsRef<Path>`:
-    let model = LlamaModel::load_from_file_async("model.bin", LlamaParams::default())
+    println!("Loading model...");
+
+    let start = Instant::now();
+
+    let model = Llama::builder()
+        .with_source(
+            LlamaSource::new(FileSource::Local(PathBuf::from("model.gguf")))
+                .with_tokenizer(FileSource::Local(PathBuf::from("tokenizer.json"))),
+        )
+        .build()
         .await
-        .expect("Failed to load model");
+        .unwrap();
+
+    println!("Finished loading model. Took: {:?}", start.elapsed());
 
     let state = AppState { model };
 
     let app = Router::new()
         .route("/prompt", post(run_prompt))
-        .nest_service("/openapi.yaml", ServeDir::new("./static"))
+        .nest_service("/static", ServeDir::new("./static"))
         .fallback_service(ServeFile::new("./templates/index.html"))
         .layer(CorsLayer::new().allow_origin(Any))
         .with_state(state);
@@ -42,24 +47,26 @@ async fn main() {
         .await
         .unwrap_or_else(|_| panic!("Failed to bind to port \"{port}\""));
 
-    log::info!("Listening on port {port}");
+    println!("Listening on port {}", port);
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn run_prompt(State(state): State<AppState>, prompt: Bytes) -> impl IntoResponse {
-    let mut session = state
-        .model
-        .create_session(SessionParams::default())
-        .expect("Failed to create session");
+async fn run_prompt(State(state): State<AppState>, prompt: String) -> impl IntoResponse {
+    println!("Received prompt: {}", prompt);
 
-    session.advance_context_async(prompt).await.unwrap();
+    let model = state.model;
+    // .chat()
+    // .with_system_prompt("You are Socrates, a wise philosopher.");
 
-    let completions = session
-        .start_completing_with(StandardSampler::default(), 1024)
-        .expect("Failed to start completing")
-        .into_strings();
+    println!("Created a chat instance");
 
-    let stream = stream::iter(completions);
+    let response_stream = model(&prompt);
 
-    StreamBodyAs::text(stream)
+    println!("Response stream created, streaming response...");
+
+    fn infallible(t: String) -> Result<String, std::convert::Infallible> {
+        Ok(t)
+    }
+
+    Body::from_stream(response_stream.map(infallible))
 }

@@ -1,8 +1,11 @@
-FROM scratch AS download-stage
+FROM scratch AS model-download-stage
 
-ADD https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/main/llama-2-7b-chat.Q2_K.gguf?download=true model.bin
+ADD https://huggingface.co/lmstudio-community/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q3_K_L.gguf?download=true model.gguf
 
-# Using Alpine as that's used for the production image
+FROM scratch AS tokenizer-download-stage
+
+ADD https://huggingface.co/NousResearch/Meta-Llama-3-8B-Instruct/resolve/main/tokenizer.json?download=true tokenizer.json
+
 FROM rust:1.86 AS builder
 
 WORKDIR /app
@@ -29,10 +32,10 @@ COPY Cargo.toml Cargo.lock ./
 # Build the dependencies first to cache them
 # Template src/main.rs has to exist for build to run
 RUN mkdir src && echo "fn main() {}" > src/main.rs
-RUN cargo build --locked
+RUN cargo build --locked --release
 
 COPY --from=download-stage /model.bin ./model.bin
 
 # Run app with live reload
 # See all default bacon jobs at https://raw.githubusercontent.com/Canop/bacon/main/defaults/default-bacon.toml
-CMD ["bacon", "--headless", "--watch", "./src/", "run-long"]
+CMD ["bacon", "--headless", "--watch", "./src/", "run-long", "--", " --release"]
